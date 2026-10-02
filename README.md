@@ -58,9 +58,11 @@ uv --version
 
 ### 1. 安装
 
+> 仓库根目录就是本项目本身（`cx` 文件夹）；克隆下来即工具源码。
+
 ```bash
-git clone <your-repo-url> ~/ai/cx
-cd ~/ai/cx
+git clone <your-repo-url> cx
+cd cx
 uv tool install .          # 安装 `cx` 到 ~/.local/bin
 ```
 
