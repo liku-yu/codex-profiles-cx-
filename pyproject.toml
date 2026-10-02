@@ -1,0 +1,30 @@
+[project]
+name = "codex-profiles"
+version = "0.1.0"
+description = "TUI for managing OpenAI Codex profile-v2 files (models, providers, reasoning levels)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "tomlkit>=0.13",
+    "jsonschema>=4.20",
+    "rich>=13",
+    "textual>=8.2.8",
+]
+
+[project.scripts]
+cx = "cx.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.5,<0.6"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "cx"
+module-root = "src"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# Intentional patterns: best-effort error handling and explicit subprocess calls.
+ignore = ["BLE001", "S110", "PLW1510", "RUF012", "UP045", "DTZ006", "FURB162", "SIM102"]
