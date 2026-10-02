@@ -33,6 +33,15 @@
 `config.toml` 并写入 `model_catalog_json`（Codex 的权威模型目录）；「启动」则用
 `codex --profile <name>`。改完自动重启 app-server 守护进程并同步旧会话。
 
+```mermaid
+flowchart LR
+  A["cx：选供应商<br/>base_url + API Key"] --> B["$CODEX_HOME/&lt;name&gt;.config.toml"]
+  B -->|"x 应用"| C["config.toml<br/>+ model_catalog_json"]
+  B -->|"l 启动"| D["codex --profile &lt;name&gt;"]
+  C --> E["普通 codex<br/>/model 显示自定义模型"]
+  C --> F["自动重启守护进程 + 同步旧会话"]
+```
+
 ---
 
 ## 怎么做
@@ -82,7 +91,7 @@ cx
 | `R` | **还原 Codex 原始配置** |
 | `S` | **会话管理** |
 | `U` | **Token 用量统计** |
-| `v` | 用真实 codex 二进制验证该 profile |
+| `v` | 用真实 codex 二进制验证该 profile（`--ephemeral`，不产生会话） |
 | `l` | 启动 `codex --profile <name>`（只影响这次会话） |
 | `t` | 切换主题（移动光标实时预览） |
 | `r` / `q` | 刷新 / 退出 |
@@ -114,6 +123,10 @@ Hugging Face / Moonshot / Qwen Token Plan / Xiaomi / Z.AI / OpenCode Zen·Go 等
 
 模型来源优先级：表单里 **Detect models** 拉取的全量 > 内置预设 > 手填的单个模型。
 只想临时用某个供应商而不改全局，用 **`l`**（`codex --profile <name>`）。
+
+**应用 vs 启动**：`x` 合并进 `config.toml`（普通 `codex`、VS Code、App 都生效），
+并清理上次应用留下、已不再引用的 provider（只删 `cx` 自己加的，你手动加的不动）；
+`l` 只对这次会话生效，不改全局。
 
 ### 6. 会话管理
 
