@@ -124,6 +124,9 @@ Hugging Face / Moonshot / Qwen Token Plan / Xiaomi / Z.AI / OpenCode Zen·Go 等
 `model_catalog_json`；这是**权威目录**，`/model` 就只显示这些模型（不再有自带 gpt 模型）。
 
 模型来源优先级：表单里 **Detect models** 拉取的全量 > 内置预设 > 手填的单个模型。
+生成的目录里，每个自定义模型都使用 **Codex 的 fallback 工具配置**（`tool_mode` 空、
+`experimental_supported_tools` 空、不使用 gpt-6 专属工具与 `model_messages`），
+以免模型把工具调用当成文本输出。
 只想临时用某个供应商而不改全局，用 **`l`**（`codex --profile <name>`）。
 
 **应用 vs 启动**：`x` 合并进 `config.toml`（普通 `codex`、VS Code、App 都生效），

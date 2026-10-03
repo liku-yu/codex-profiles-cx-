@@ -112,12 +112,56 @@ def build_models_response(models: list[dict[str, Any]]) -> dict[str, Any]:
         # Must be True so the model survives Codex's non-ChatGPT auth filter.
         entry["supported_in_api"] = True
         entry["visibility"] = "list"  # -> show in the /model picker
-        entry["context_window"] = model.get("context")
+        entry["context_window"] = model.get("context") or 272_000
         entry["max_context_window"] = None
+        entry["auto_compact_token_limit"] = None
         entry["upgrade"] = None
         entry["availability_nux"] = None
+        _apply_fallback_tool_config(entry, template)
         entries.append(entry)
     return {"models": entries}
+
+
+def _apply_fallback_tool_config(
+    entry: dict[str, Any], template: dict[str, Any]
+) -> None:
+    """Use Codex's fallback (unknown-model) tool/behavior config.
+
+    The template model is gpt-6, which declares gpt-6-only tools
+    (``tool_mode = "code_mode_only"``, ``experimental_supported_tools``,
+    ``use_responses_lite``, gpt-6 ``model_messages``). Inheriting those makes a
+    custom model emit tool calls as plain text instead of executing them, so we
+    replace them with the same minimal shape Codex uses for unknown models.
+    """
+    entry["shell_type"] = "unified_exec"
+    entry["apply_patch_tool_type"] = None
+    entry["web_search_tool_type"] = "text"
+    entry["truncation_policy"] = {"mode": "bytes", "limit": 10_000}
+    entry["experimental_supported_tools"] = []
+    entry["used_fallback_model_metadata"] = True
+    entry["supports_search_tool"] = False
+    entry["use_responses_lite"] = False
+    entry["tool_mode"] = None
+    entry["multi_agent_version"] = None
+    entry["multi_agent_reasoning_effort"] = None
+    entry["include_skills_usage_instructions"] = False
+    entry["include_plugin_usage_instructions"] = False
+    entry["include_apps_usage_instructions"] = False
+    entry["supports_reasoning_summary_parameter"] = True
+    entry["support_verbosity"] = False
+    entry["default_verbosity"] = None
+    entry["supports_image_detail_original"] = False
+    entry["effective_context_window_percent"] = 95
+    entry["priority"] = 99
+    # Keep only the base instruction template; drop gpt-6-only message configs
+    # (persistent_instructions, approvals, collaboration_modes, multi_agent, ...).
+    messages = template.get("model_messages")
+    if isinstance(messages, dict) and messages.get("instructions_template"):
+        entry["model_messages"] = {
+            "instructions_template": messages["instructions_template"]
+        }
+    else:
+        entry["model_messages"] = None
 
 
 def write_catalog(profile_name: str, models: list[dict[str, Any]]) -> Path | None:
