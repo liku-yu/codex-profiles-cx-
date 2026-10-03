@@ -25,7 +25,11 @@ import tomlkit
 from cx import state
 from cx.codex import codex_home
 from cx.profiles import load_dict
-from cx.schema import provider_reference_issues, validate_document
+from cx.schema import (
+    base_config_issues,
+    provider_reference_issues,
+    validate_document,
+)
 
 CONFIG_NAME = "config.toml"
 
@@ -248,6 +252,9 @@ def preview_merge(
     final = tomllib.loads(text)
     problems = validate_document(final)
     problems.extend(provider_reference_issues(final, final))
+    # Legacy `profile = ...` / `[profiles.<name>]` in config.toml makes Codex reject
+    # the config at runtime even though it passes schema validation.
+    problems.extend(base_config_issues(final, [name]))
     return text, problems
 
 

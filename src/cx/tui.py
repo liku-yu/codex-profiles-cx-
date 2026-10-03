@@ -1012,7 +1012,9 @@ class CxApp(App):
     def _after_provider_change(self) -> None:
         """config.toml 的 provider 变了：后台重启守护进程 + 自动同步会话。"""
         self._log("[dim]正在重启守护进程并同步会话 …[/dim]")
-        self.run_worker(self._do_provider_change, thread=True, group="provider-change")
+        self.run_worker(
+            self._do_provider_change, thread=True, exclusive=True, group="provider-change"
+        )
 
     def _do_provider_change(self) -> None:
         ok, message = restart_app_server_daemon()
@@ -1252,7 +1254,19 @@ class CxApp(App):
             if "model_providers" in fresh:
                 providers = doc.setdefault("model_providers", {})
                 if isinstance(providers, dict):
-                    providers.update(fresh["model_providers"])
+                    for pid, new_provider in fresh["model_providers"].items():
+                        existing = providers.get(pid)
+                        if isinstance(existing, dict) and isinstance(new_provider, dict):
+                            # Overwrite managed fields but keep user-added provider fields
+                            # (query_params, http_headers, ...), and keep one auth method.
+                            for key, value in new_provider.items():
+                                existing[key] = value
+                            if new_provider.get("experimental_bearer_token"):
+                                existing.pop("env_key", None)
+                            elif new_provider.get("env_key"):
+                                existing.pop("experimental_bearer_token", None)
+                        else:
+                            providers[pid] = new_provider
             target = existing_name
         else:
             doc = fresh
